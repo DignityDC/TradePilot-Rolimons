@@ -13,9 +13,16 @@ Next.js app that auto-posts Rolimons trade ads every 15 minutes for every signed
 ```bash
 npm install
 cp .env.example .env
+```
+
+Fill `.env` with your Postgres URLs (`POSTGRES_URL`, `DATABASE_URL`, `PRISMA_DATABASE_URL`) plus the app secrets, then:
+
+```bash
 npm run db:push
 npm run dev
 ```
+
+On Vercel, set the same env vars in the project settings. Prisma uses `DATABASE_URL` (client) and `POSTGRES_URL` (migrations / direct).
 
 ## Features
 

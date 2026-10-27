@@ -344,13 +344,13 @@ export async function ensureDefaultAd(userId: string) {
   });
 }
 
-/** SQLite can store Robux past Prisma Int; reset overflowed rows. */
+/** Reset Robux values that overflow Prisma Int (≤ 2_000_000_000). */
 export async function repairRobuxOverflow() {
   await prisma.$executeRawUnsafe(
-    `UPDATE "TradeAd" SET offerRobux = 0 WHERE offerRobux > 2000000000 OR offerRobux < 0`,
+    `UPDATE "TradeAd" SET "offerRobux" = 0 WHERE "offerRobux" > 2000000000 OR "offerRobux" < 0`,
   );
   await prisma.$executeRawUnsafe(
-    `UPDATE "TradeAd" SET requestRobux = 0 WHERE requestRobux > 2000000000 OR requestRobux < 0`,
+    `UPDATE "TradeAd" SET "requestRobux" = 0 WHERE "requestRobux" > 2000000000 OR "requestRobux" < 0`,
   );
 }
 
