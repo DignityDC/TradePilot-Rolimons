@@ -24,9 +24,19 @@ npm run dev
 
 On Vercel, set the same env vars in the project settings. Prisma uses `DATABASE_URL` (client) and `POSTGRES_URL` (migrations / direct).
 
+### Auto-post every 15 minutes (Hobby)
+
+Vercel Hobby only allows **one cron per day** (configured as midnight UTC in `vercel.json`). For Rolimons’ 15-minute ad cooldown, point an external cron (e.g. [cron-job.org](https://cron-job.org)) at:
+
+```text
+GET https://YOUR_DOMAIN/api/cron/post-ads?secret=YOUR_CRON_SECRET
+```
+
+Schedule: every 15 minutes. Header alternative: `Authorization: Bearer YOUR_CRON_SECRET`.
+
 ## Features
 
 - Offer side pulls from your real Rolimons inventory
 - Request side uses catalog items + Rolimons-style receiving tags (images in `/public`)
 - Prompted to finish Settings before creating/posting ads
-- Auto-post cron every 15 minutes for all configured users
+- Auto-post via cron endpoint for all configured users
