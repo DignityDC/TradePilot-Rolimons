@@ -1,0 +1,15 @@
+---
+description: Commit and push to GitHub after every code update
+alwaysApply: true
+---
+
+# Push after every update
+
+After finishing any substantive code or config change in this repo:
+
+1. Commit relevant files (never `.env` or secrets).
+2. Push to `origin` on the current branch immediately.
+3. Do not wait for the user to ask to push.
+
+Use author/committer `DignityDC <dignitydcgit@gmail.com>` via env vars for commits (do not change git config).
+Remote: `https://github.com/DignityDC/TradePilot-Rolimons.git`
