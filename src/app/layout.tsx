@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Barlow_Condensed, IBM_Plex_Mono, Source_Sans_3 } from "next/font/google";
-import Script from "next/script";
 import AdBlockGate from "@/components/AdBlockGate";
 import "./globals.css";
 
@@ -35,11 +34,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${display.variable} ${body.variable} ${mono.variable} h-full`}
     >
       <head>
-        <Script
+        {/* Raw tag required — next/script becomes a preload and AdSense won't verify */}
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8413849757808282"
           crossOrigin="anonymous"
-          strategy="beforeInteractive"
         />
       </head>
       <body className="min-h-full flex flex-col">
