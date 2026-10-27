@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id               String    @id @default(cuid())
+  username         String    @unique
+  passwordHash     String
+  robloxUsername   String?
+  robloxUserId     Int?
+  roliTokenEnc     String?
+  autoPostEnabled  Boolean   @default(true)
+  rotationMode     String    @default("round_robin")
+  rotationIndex    Int       @default(0)
+  activeAdId       String?
+  lastPostedAt     DateTime?
+  lastPostStatus   String?
+  lastPostError    String?
+  lastPostedAdId   String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  ads              TradeAd[]
+}
+
+model TradeAd {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  offerItemIds    String    @default("[]")
+  requestItemIds  String    @default("[]")
+  requestTags     String    @default("[]")
+  offerRobux      Int       @default(0)
+  requestRobux    Int       @default(0)
+  enabled         Boolean   @default(true)
+  sortOrder       Int       @default(0)
+  postCount       Int       @default(0)
+  successCount    Int       @default(0)
+  failCount       Int       @default(0)
+  lastPostedAt    DateTime?
+  lastPostStatus  String?
+  lastPostError   String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId, sortOrder])
+}
