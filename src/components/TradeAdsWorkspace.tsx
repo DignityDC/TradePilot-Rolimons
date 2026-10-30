@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import TradeAdBuilder from "@/components/TradeAdBuilder";
-import { formatCooldown, isCooldownMessage } from "@/lib/cooldown";
+import {
+  LOCAL_COOLDOWN_MS,
+  formatCooldown,
+  isCooldownMessage,
+} from "@/lib/cooldown";
 import { readJson } from "@/lib/http";
 
 export type AdSummary = {
@@ -188,7 +192,7 @@ export default function TradeAdsWorkspace() {
         throw new Error(data.error || data.message || "Post failed");
       }
       setMessage(`Posted “${data.adName}”.`);
-      setCooldownMs(15 * 60 * 1000);
+      setCooldownMs(LOCAL_COOLDOWN_MS);
       await refresh();
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Post failed";

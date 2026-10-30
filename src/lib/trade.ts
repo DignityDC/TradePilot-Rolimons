@@ -1,10 +1,12 @@
 import { decrypt } from "@/lib/crypto";
 import {
-  ROLIMONS_COOLDOWN_MS,
+  COOLDOWN_RETRY_MS,
+  LOCAL_COOLDOWN_MS,
   activeCooldownRemainingMs,
   cooldownRemainingMs,
   formatCooldown,
   isCooldownMessage,
+  lastPostedAtForRetry,
 } from "@/lib/cooldown";
 import { prisma } from "@/lib/db";
 import { createTradeAd, type RequestTag } from "@/lib/rolimons";
@@ -13,6 +15,8 @@ import { hasRolimonsSetup } from "@/lib/session";
 export type RotationMode = "round_robin" | "random" | "single";
 
 export {
+  COOLDOWN_RETRY_MS,
+  LOCAL_COOLDOWN_MS,
   ROLIMONS_COOLDOWN_MS,
   activeCooldownRemainingMs,
   cooldownRemainingMs,
@@ -229,10 +233,24 @@ export async function postTradeAdById(userId: string, adId: string, advance = fa
   const cooldown =
     result.code === "cooldown" || isCooldownMessage(result.message);
 
-  // Start a local 15m timer once when Rolimons says cooldown (e.g. ad was
-  // posted on the site). Never reset an already-running timer on retries.
   const existingRemaining = cooldownRemainingMs(user.lastPostedAt);
-  const startCooldownClock = cooldown && existingRemaining <= 0;
+  // If Rolimons still cools down after our local gate expired, do NOT restart
+  // a full 15m (that caused ~30m posting). Use a short retry backoff instead.
+  // Only start a fresh full cooldown when we have no usable lastPostedAt
+  // (e.g. user posted on Rolimons.com outside the app).
+  let nextPostedAt: Date | undefined;
+  let waitMs = 0;
+  if (cooldown) {
+    if (existingRemaining > 0) {
+      waitMs = existingRemaining;
+    } else if (user.lastPostedAt) {
+      nextPostedAt = lastPostedAtForRetry(COOLDOWN_RETRY_MS);
+      waitMs = COOLDOWN_RETRY_MS;
+    } else {
+      nextPostedAt = now;
+      waitMs = LOCAL_COOLDOWN_MS;
+    }
+  }
 
   await prisma.$transaction([
     prisma.tradeAd.update({
@@ -240,7 +258,7 @@ export async function postTradeAdById(userId: string, adId: string, advance = fa
       data: {
         lastPostStatus: cooldown ? "cooldown" : "error",
         lastPostError: result.message,
-        ...(startCooldownClock ? { lastPostedAt: now } : {}),
+        ...(nextPostedAt ? { lastPostedAt: nextPostedAt } : {}),
         ...(cooldown
           ? {}
           : { postCount: { increment: 1 }, failCount: { increment: 1 } }),
@@ -252,16 +270,10 @@ export async function postTradeAdById(userId: string, adId: string, advance = fa
         lastPostStatus: cooldown ? "cooldown" : "error",
         lastPostError: result.message,
         lastPostedAdId: ad.id,
-        ...(startCooldownClock ? { lastPostedAt: now } : {}),
+        ...(nextPostedAt ? { lastPostedAt: nextPostedAt } : {}),
       },
     }),
   ]);
-
-  const waitMs = cooldown
-    ? startCooldownClock
-      ? ROLIMONS_COOLDOWN_MS
-      : existingRemaining
-    : 0;
 
   return {
     ok: false as const,

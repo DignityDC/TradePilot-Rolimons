@@ -4,7 +4,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { REQUEST_TAGS, TAG_IMAGES, type RequestTag } from "@/lib/tags";
-import { formatCooldown, isCooldownMessage } from "@/lib/cooldown";
+import {
+  LOCAL_COOLDOWN_MS,
+  formatCooldown,
+  isCooldownMessage,
+} from "@/lib/cooldown";
 import { readJson } from "@/lib/http";
 
 export type CatalogItem = {
@@ -400,7 +404,7 @@ export default function TradeAdBuilder({
         lastPostStatus: "success",
         lastPostError: null,
       });
-      setCooldownMs(15 * 60 * 1000);
+      setCooldownMs(LOCAL_COOLDOWN_MS);
       await onSaved?.();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Post failed");

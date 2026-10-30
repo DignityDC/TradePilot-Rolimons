@@ -32,7 +32,7 @@ Vercel Hobby only allows **one cron per day** (configured as midnight UTC in `ve
 GET https://YOUR_DOMAIN/api/cron/post-ads?secret=YOUR_CRON_SECRET
 ```
 
-Schedule: every 15 minutes. Header alternative: `Authorization: Bearer YOUR_CRON_SECRET`.
+Schedule: **every 1–5 minutes** (not 15). The app enforces Rolimons’ cooldown locally (~15m 45s), so frequent pings only post when ready — a 15-minute cron often lands slightly early, gets rejected, and effectively posts every ~30 minutes. Header alternative: `Authorization: Bearer YOUR_CRON_SECRET`.
 
 ## Features
 
