@@ -1,5 +1,6 @@
 export const ENDPOINTS = {
-  itemDetails: "https://api.rolimons.com/items/v1/itemdetails",
+  // v2 includes newer UGC limiteds missing from v1 (e.g. Lord of the Buxeration)
+  itemDetails: "https://api.rolimons.com/items/v2/itemdetails",
   dealActivity: "https://api.rolimons.com/market/v1/dealactivity",
   playerInfo: "https://api.rolimons.com/players/v1/playerinfo/",
   playerAssets: "https://api.rolimons.com/players/v1/playerassets/",
@@ -60,6 +61,7 @@ export type CreateTradeAdParams = {
   roliVerification: string;
 };
 
+// v2 may append extra fields after the original 10; we only read the first 10.
 type RawItem = [
   string,
   string,
@@ -71,6 +73,7 @@ type RawItem = [
   number,
   number,
   number,
+  ...number[],
 ];
 
 const UA =

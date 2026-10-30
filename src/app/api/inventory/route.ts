@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getItems, getPlayerInventory } from "@/lib/rolimons";
-import { getThumbnailMap } from "@/lib/roblox";
+import { getAssetNameMap, getThumbnailMap } from "@/lib/roblox";
 import { getSession, hasRolimonsSetup } from "@/lib/session";
 
 export async function GET(req: Request) {
@@ -45,21 +45,39 @@ export async function GET(req: Request) {
 
   const catalog = await getItems();
   const byId = new Map(catalog.map((i) => [i.id, i]));
+  const missingIds = inventory.itemIds.filter((id) => !byId.has(id));
+  const names = missingIds.length ? await getAssetNameMap(missingIds) : {};
+
+  // Keep assets even if Rolimons catalog lags — show Roblox name + unknown value.
   let items = inventory.itemIds
-    .map((id) => byId.get(id))
-    .filter((i): i is NonNullable<typeof i> => Boolean(i))
-    .map((i) => ({
-      id: i.id,
-      name: i.name,
-      acronym: i.acronym,
-      rap: i.rap,
-      value: i.value,
-      demand: i.demand,
-      trend: i.trend,
-      rare: i.rare,
-      projected: i.projected,
-    }))
-    .sort((a, b) => b.value - a.value);
+    .map((id) => {
+      const i = byId.get(id);
+      if (i) {
+        return {
+          id: i.id,
+          name: i.name,
+          acronym: i.acronym,
+          rap: i.rap,
+          value: i.value,
+          demand: i.demand,
+          trend: i.trend,
+          rare: i.rare,
+          projected: i.projected,
+        };
+      }
+      return {
+        id,
+        name: names[id] || `Item ${id}`,
+        acronym: "",
+        rap: -1,
+        value: -1,
+        demand: "Unassigned",
+        trend: "None",
+        rare: false,
+        projected: false,
+      };
+    })
+    .sort((a, b) => (b.value < 0 ? 0 : b.value) - (a.value < 0 ? 0 : a.value));
 
   if (q) {
     items = items.filter(

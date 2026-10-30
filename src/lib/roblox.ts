@@ -27,6 +27,29 @@ export async function resolveRobloxUser(username: string): Promise<{
   }
 }
 
+export async function getAssetNameMap(
+  assetIds: number[],
+): Promise<Record<number, string>> {
+  const map: Record<number, string> = {};
+  await Promise.all(
+    assetIds.map(async (id) => {
+      try {
+        const res = await fetch(
+          `https://economy.roblox.com/v2/assets/${id}/details`,
+        );
+        if (!res.ok) return;
+        const raw = await res.text();
+        if (!raw.trim()) return;
+        const data = JSON.parse(raw) as { Name?: string };
+        if (data.Name) map[id] = data.Name;
+      } catch {
+        /* ignore */
+      }
+    }),
+  );
+  return map;
+}
+
 export async function getThumbnailMap(assetIds: number[]): Promise<Record<number, string>> {
   const map: Record<number, string> = {};
   if (assetIds.length === 0) return map;
